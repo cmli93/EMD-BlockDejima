@@ -25,9 +25,9 @@ class Dashboard extends Component {
 
         queryMetaInstance: null, //保存合约实例，方便在其他地方调用
 
-        // owner: 0,
-        // timestamp: "",
-        // allowedRole:0,
+        owner: 0,
+        timestamp: "",
+        allowedRole:0,
         //
         // EMRMetasCount:0
     }
@@ -107,24 +107,79 @@ class Dashboard extends Component {
    * 合约实例调用 getMeta方法
    */
   queryData() {
-    var patientID = this.refs.patientID_from.value;
+    var patientID = this.refs.q_patientID_from.value;
     console.log(patientID);
 
     this.state.queryMetaInstance.getMeta(patientID)
       .then(result => {
         //返回的result是一个BigNumber类型数据，toString转出数字字符串
-        console.log(result.toString())
-        this.setState({
-            owner: result
-          // timestamp: result[1].toString(),
-          // allowedRole: result[2].toNumber()
-        })
+        //console.log(result[0].toString())
+
+        this.refs.show_patientID_from.value = result[0].toString(),
+
+        this.refs.show_timestamp_from.value = result[1].toString(),
+
+        this.refs.show_allowedRole_from.value = result[2].toNumber()
+        // this.setState({
+        //     owner: result[0].toString()
+        // })
+        // this.setState({
+        //     timestamp: result[1].toString()
+        // })
+        // this.setState({
+        //     allowedRole: result[2].toNumber()
+        // })
       })
 
     this.refs.patientID_from.value = ""; //清空输入框，方便下一次查询
     //console.log('EMRMetasCount:', this.state.owner);
   }
 
+  /**
+   * 增加medical metadata
+   * 获取输入框中的patient ID， timeStamp， allowedRole
+   * 合约实例调用 addMetas方法
+   */
+  addData() {
+    var patientID = this.refs.a_patientID_from.value;
+    var timeStamp = this.refs.timestamp_from.value;
+    var allowedRole = this.refs.allowedRole_from.value;
+
+    this.state.queryMetaInstance.addMetas(patientID,timeStamp,allowedRole)
+
+    alert('Added a new medical metadata successfully!')
+
+    //清空输入框，方便下一次增加
+    this.refs.a_patientID_from.value = "";
+    this.refs.timestamp_from.value = "";
+    this.refs.allowedRole_from.value = "";
+
+  }
+
+  /**
+   * 更新medical metadata
+   * 获取输入框中的patient ID， timeStamp， allowedRole
+   * 合约实例调用 updateMetas方法
+   */
+
+  updateData(){
+    var patientID = this.refs.show_patientID_from.value;
+    var timeStamp = this.refs.show_timestamp_from.value;
+    var allowedRole = this.refs.show_allowedRole_from.value;
+
+    this.state.queryMetaInstance.updateMetas(patientID,timeStamp,allowedRole)
+
+    alert('Updated a new medical metadata successfully!')
+
+    //清空输入框
+    this.refs.show_patientID_from.value = "";
+    this.refs.show_timestamp_from.value = "";
+    this.refs.show_allowedRole_from.value = "";
+  }
+
+
+  //一个组件类必须要实现一个 render 方法，这个 render 方法必须要返回一个 JSX 元素。
+  //但这里要注意的是，必须要用一个外层的 JSX 元素把所有内容包裹起来。
   render() {
     return (
       <main className = "container">
@@ -153,10 +208,10 @@ class Dashboard extends Component {
             </div>
 
             <div className = "pure-u-1-1" >
-                <h4>Firstly, please input the patient ID </h4>
+                <h2> Query (Update) Meta</h2> (please input the patient ID)
                 <p></p>
 
-                <div> patient ID： <input ref = "patientID_from" /></div>
+                <div> patient ID： <input ref = "q_patientID_from" /></div>
                  <p></p>
 
                 <button onClick = {this.queryData.bind(this)}> query medical data </button>
@@ -170,10 +225,36 @@ class Dashboard extends Component {
             </div>*/}
 
             <div className = "pure-u-1-1" >
-                <h4> The patient record is as follow.</h4>
-                <h5> patient ID: {this.state.owner}</h5>
-                {/*}// <h5> TimeStamp (last modified): {this.state.timestamp}</h5>
+                <h4> The patient record is as follow. (If all data below are 0, then this record doesn't exist!)</h4>
+
+
+                {/*}<h5> patient ID: {this.state.owner}</h5>
+                // <h5> TimeStamp (last modified): {this.state.timestamp}</h5>
                 // <h5> AllowedRole: {this.state.allowedRole}</h5>*/}
+
+                <h5> patient ID: <input ref = "show_patientID_from" /></h5>
+                <h5> TimeStamp (last modified): <input ref = "show_timestamp_from" /></h5>
+                <h5> AllowedRole: <input ref = "show_allowedRole_from" /></h5>
+
+                <button onClick = {this.updateData.bind(this)}> update medical data </button>
+            </div>
+
+            <div className = "pure-u-1-1" >
+                <h2>Add Meta </h2> (please input the meta infos)
+                <p></p>
+
+                <div> patient ID： <input ref = "a_patientID_from" /></div>
+                 <p></p>
+
+                 <div> timeStamp： <input ref = "timestamp_from" /></div>
+                 <p></p>
+
+                 <div> allowedRole： <input ref = "allowedRole_from" /></div>
+                 <p></p>
+
+
+                <button onClick = {this.addData.bind(this)}> add medical data </button>
+
             </div>
         </div >
 

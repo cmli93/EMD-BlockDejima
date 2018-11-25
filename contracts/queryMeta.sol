@@ -69,12 +69,13 @@ contract queryMeta {
 
 
     //return an object by given patient ID
-    function getMeta(uint _id) public returns(uint) {
+    function getMeta(uint _id) view returns(uint owner, string timeStamp, uint allowedRole) {
       for (uint i = 1; i <= EMRMetasCount; i++)
       {
-         if(EMRMetas[i].owner == _id) 
-                return 1;
+         if(EMRMetas[i].owner == _id)
+                return (EMRMetas[i].owner, EMRMetas[i].timestamp, EMRMetas[i].allowedRole);
       }
+      return (0,"0",0);
     }
 
 
@@ -110,7 +111,7 @@ contract queryMeta {
     }
 
     //update an existing medical metadata, suppose will change the allowedRole
-    function updateMetas (uint _owner) public
+    function updateMetas (uint _owner, string _timestamp, uint _allowedRole ) public
     {
         //updateMetas　string _timestamp can be get automatically later
 
@@ -125,7 +126,10 @@ contract queryMeta {
         for (uint i = 1; i <= EMRMetasCount; i++)
         {
            if(EMRMetas[i].owner == _owner)
-             EMRMetas[i].allowedRole = 3;
+           {
+             EMRMetas[i].timestamp = _timestamp;
+             EMRMetas[i].allowedRole = _allowedRole;
+          }
         }
 
         // trigger updateMeta　Event
