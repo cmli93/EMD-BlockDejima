@@ -9,7 +9,7 @@ class SignUp extends Component {
           <div className="pure-u-1-1">
             <h1>Sign Up</h1>
             <p>We've got your wallet information, simply input your name and your account is made!</p>
-            <p>Later you can use this name to log in system</p>
+            <p>Later you can use this name to log in system.</p>
             <SignUpFormContainer />
           </div>
         </div>
