@@ -23,6 +23,20 @@ contract queryMeta {
     //store EMRMetas count
     uint public EMRMetasCount;
 
+    /*
+       struct DB_login_info model the login info to access database (Dejima)
+     */
+    struct DB_login_info{
+      string username;
+      string password;
+    }
+
+    //Store DB_login_infos
+    mapping (uint => DB_login_info) public DB_login_infos;
+
+    /*
+       struct User model the user calling this contract.
+     */
     struct User{
       string name; //name of doctor or patient
       uint id;
@@ -65,6 +79,15 @@ contract queryMeta {
 
            addMetas(123, "20181118", 1);
            addMetas(456, "20181119", 4);
+
+           //initialize the login info to access dejima DB
+           //这里先直接给一个最高权限的root信息，
+           //之后在DB中创建了新的用户和密码之后可以给这块加新用户
+           DB_login_infos[0] = DB_login_info("root", "dang5678");
+    }
+
+    function getDB_login_infos() view returns (string username, string password){
+      return (DB_login_infos[0].username, DB_login_infos[0].password);
     }
 
 

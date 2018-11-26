@@ -8,6 +8,8 @@ import queryMetaContract from '../../../build/contracts/queryMeta.json'
 
 import getWeb3 from '../../util/web3/getWeb3'
 import Web3 from 'web3'
+//import test1 from '../../test.js'
+//query = require('../../test.js')
 
 class Dashboard extends Component {
     constructor(props, {authData})
@@ -102,11 +104,46 @@ class Dashboard extends Component {
   }
 
   /**
+   * 查询medical data
+   * 获取输入框中的patient ID
+   * 合约实例调用 getDB_login_infos方法,
+   * 检查该data的metadata是否存在 && 访问该data的用户（当前calling contract的用户是否有权限访问)
+   * 若合法（满足以上两种情况，则提供登进数据库的username和password
+   * 若不合法，则给出提示信息
+   */
+  queryData() {
+    var patientID = this.refs.qData_patientID_from.value;
+
+    this.state.queryMetaInstance.getMeta(patientID)
+      .then(result => {
+        //返回的result是一个BigNumber类型数据，toString转出数字字符串
+        //console.log(result[0].toString())
+        if (result[0].toString() !== "0") //该data的metadata存在
+        {
+          //此处先不对用户的身份进行核查
+          this.state.queryMetaInstance.getDB_login_infos()
+          .then(loginInfo =>{
+            this.refs.username_from.value = loginInfo[0].toString();
+            this.refs.password_from.value = loginInfo[1].toString();
+          })
+        }
+        else  //该data的metadata不存在
+        {
+           this.refs.username_from.value = "none";
+           this.refs.password_from.value = "none";
+        }
+
+      })
+
+      this.refs.qData_patientID_from.value = ""; //清空输入框，方便下一次查询
+  }
+
+  /**
    * 查询medical metadata
    * 获取输入框中的patient ID
    * 合约实例调用 getMeta方法
    */
-  queryData() {
+  queryMeta() {
     var patientID = this.refs.q_patientID_from.value;
     console.log(patientID);
 
@@ -131,8 +168,38 @@ class Dashboard extends Component {
         // })
       })
 
-    this.refs.patientID_from.value = ""; //清空输入框，方便下一次查询
-    //console.log('EMRMetasCount:', this.state.owner);
+      this.refs.patientID_from.value = ""; //清空输入框，方便下一次查询
+      //console.log('EMRMetasCount:', this.state.owner);
+
+      /*==========try to connect to PostgreSQL in front-end js====================*/
+      // const { Pool, Client } = require('pg')
+      //
+      // const pool = new Pool({
+      //   user: 'root',
+      //   host: '192.168.56.101',
+      //   database: 'ride_mediator_db',
+      //   password: 'dang5678',
+      //   port: 5432,
+      // })
+      //
+      // pool.query('SELECT * from area', (err, res) => {
+      //   console.log(err, res)
+      //   pool.end()
+      // })
+      //
+      // const client = new Client({
+      //     user: 'root',
+      //     host: '192.168.56.101',
+      //     database: 'ride_mediator_db',
+      //     password: 'dang5678',
+      //     port: 5432,
+      // })
+      // client.connect()
+      //
+      // client.query('SELECT * from area', (err, res) => {
+      //   console.log(err, res)
+      //   client.end()
+      // })
   }
 
   /**
@@ -140,7 +207,7 @@ class Dashboard extends Component {
    * 获取输入框中的patient ID， timeStamp， allowedRole
    * 合约实例调用 addMetas方法
    */
-  addData() {
+  addMeta() {
     var patientID = this.refs.a_patientID_from.value;
     var timeStamp = this.refs.timestamp_from.value;
     var allowedRole = this.refs.allowedRole_from.value;
@@ -162,7 +229,7 @@ class Dashboard extends Component {
    * 合约实例调用 updateMetas方法
    */
 
-  updateData(){
+  updateMeta(){
     var patientID = this.refs.show_patientID_from.value;
     var timeStamp = this.refs.show_timestamp_from.value;
     var allowedRole = this.refs.show_allowedRole_from.value;
@@ -207,15 +274,14 @@ class Dashboard extends Component {
                 <hr />
             </div>
 
-            <div className = "pure-u-1-1" >
+            <div className = "pure-u-1-2" >
                 <h2> Query (Update) Meta</h2> (please input the patient ID)
                 <p></p>
 
                 <div> patient ID： <input ref = "q_patientID_from" /></div>
                  <p></p>
 
-                <button onClick = {this.queryData.bind(this)}> query medical data </button>
-
+                <button onClick = {this.queryMeta.bind(this)}> query medical metadata </button>
             </div>
 
             {/*
@@ -224,22 +290,7 @@ class Dashboard extends Component {
 
             </div>*/}
 
-            <div className = "pure-u-1-1" >
-                <h4> The patient record is as follow. (If all data below are 0, then this record doesn't exist!)</h4>
-
-
-                {/*}<h5> patient ID: {this.state.owner}</h5>
-                // <h5> TimeStamp (last modified): {this.state.timestamp}</h5>
-                // <h5> AllowedRole: {this.state.allowedRole}</h5>*/}
-
-                <h5> patient ID: <input ref = "show_patientID_from" /></h5>
-                <h5> TimeStamp (last modified): <input ref = "show_timestamp_from" /></h5>
-                <h5> AllowedRole: <input ref = "show_allowedRole_from" /></h5>
-
-                <button onClick = {this.updateData.bind(this)}> update medical data </button>
-            </div>
-
-            <div className = "pure-u-1-1" >
+            <div className = "pure-u-1-2" >
                 <h2>Add Meta </h2> (please input the meta infos)
                 <p></p>
 
@@ -253,7 +304,43 @@ class Dashboard extends Component {
                  <p></p>
 
 
-                <button onClick = {this.addData.bind(this)}> add medical data </button>
+                <button className="btn btn-primary" onClick = {this.addMeta.bind(this)}> add medical metadata </button>
+
+            </div>
+
+            <div className = "pure-u-1-2" >
+                <h4> The metadata of this patient record is as follow. (If all data below are 0, then this record doesn't exist!)</h4>
+
+
+                {/*}<h5> patient ID: {this.state.owner}</h5>
+                // <h5> TimeStamp (last modified): {this.state.timestamp}</h5>
+                // <h5> AllowedRole: {this.state.allowedRole}</h5>*/}
+
+                <h5> patient ID: <input ref = "show_patientID_from" /></h5>
+                <h5> TimeStamp (last modified): <input ref = "show_timestamp_from" /></h5>
+                <h5> AllowedRole: <input ref = "show_allowedRole_from" /></h5>
+
+                <button onClick = {this.updateMeta.bind(this)}> update medical metadata </button>
+            </div>
+
+
+
+
+
+            <div className = "pure-u-1-2" >
+                <h2> Query data</h2> (please input the patient ID)
+                <p></p>
+
+                <div> patient ID： <input ref = "qData_patientID_from" /></div>
+                 <p></p>
+
+                <button onClick = {this.queryData.bind(this)}> query medical data </button>
+                {/*用户查询数据，需满足 contract中有此数据的metadata（证明此数据还在），
+                  而且用户的身份满足该metadata中指定访问的用户身份*/}
+
+                <h3> You can access the data by this identity: </h3>
+                <div> Username： <input ref = "username_from" /></div>
+                <div> Password： <input ref = "password_from" /></div>
 
             </div>
         </div >
