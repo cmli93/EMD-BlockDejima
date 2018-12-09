@@ -1,8 +1,8 @@
+/* eslint-disable */
 import React, {
   Component
 } from 'react'
-//引入MetaCoin.sol编译后的 MetaCoin.json
-//import MetaCoinContract from '../../../build/contracts/MetaCoin.json'
+
 //引入queryMeta.sol编译后的queryMeta.json
 import queryMetaContract from '../../../build/contracts/queryMeta.json'
 
@@ -42,43 +42,40 @@ class Dashboard extends Component {
   componentWillMount() {
     console.log("%cmount", "color:green")
 
-    getWeb3
-      .then(results => {
-        // this.setState({
-        //   web3: results.web3
+    // getWeb3
+    // .then(results => {
+    //   this.setState({
+    //     web3: results.web3
+    //   })
+    //   this.instantiateContract()
+    // })
+    // .catch((err) => {
+    //   console.log('Error finding web3.',err)
+    // })
 
-        // })
-        //console.log("web3 succeed");
-        const { web3 } = results;
+    let web3 = window.web3;
 
-        this.instantiateContract(web3)
+      //set web3 & truffle contract
+      if (typeof web3 !== 'undefined') {
+          // Use Mist/MetaMask's provider
+          this.state.web3 = new Web3(web3.currentProvider);
+     }
+     else{
+        console.log('Error finding web3.')
+     }
 
-        this.setState({ web3 })
-
-        //this.instantiateContract()
-      })
-      .catch((err) => {
-        console.log('Error finding web3.', err)
-      })
+     this.instantiateContract()
 
   }
 
-  instantiateContract(web3) {
+  instantiateContract() {
     const contract = require('truffle-contract')
-    // const MetaCoin = contract(MetaCoinContract)
-    // MetaCoin.setProvider(this.state.web3.currentProvider)
     const queryMeta = contract(queryMetaContract)
-
-    console.log("come to initialize");
+    queryMeta.setProvider(this.state.web3.currentProvider)
 
     if (typeof web3 === 'undefined')
        console.log("undefined web3");
 
-    var provider = new Web3.providers.HttpProvider('http://127.0.0.1:7545')
-
-    this.state.web3 = new Web3(provider)
-
-    queryMeta.setProvider(this.state.web3.currentProvider);
     //queryMeta.setProvider(new Web3.providers.HttpProvider('http://127.0.0.1:7545'));
 
     console.log("%cmiao", "color:green");
@@ -97,9 +94,10 @@ class Dashboard extends Component {
           //})
         })
 
-      //设置默认账户。
-      queryMeta.defaults({from:"0x6f06a3F922F7a5a3e5a4EdaF0E64D10F651A3A5D"})
+      this.state.web3.eth.defaultAccount = this.state.web3.eth.accounts[0]
 
+      //设置默认账户。
+      //queryMeta.defaults({from:"0x6f06a3F922F7a5a3e5a4EdaF0E64D10F651A3A5D"})
     })
   }
 
@@ -129,8 +127,8 @@ class Dashboard extends Component {
         }
         else  //该data的metadata不存在
         {
-           this.refs.username_from.value = "none";
-           this.refs.password_from.value = "none";
+           this.refs.username_from.value = "access denied";
+           this.refs.password_from.value = "access denied";
         }
 
       })
@@ -152,11 +150,18 @@ class Dashboard extends Component {
         //返回的result是一个BigNumber类型数据，toString转出数字字符串
         //console.log(result[0].toString())
 
-        this.refs.show_patientID_from.value = result[0].toString(),
-
-        this.refs.show_timestamp_from.value = result[1].toString(),
-
-        this.refs.show_allowedRole_from.value = result[2].toNumber()
+        if (result[0].toString() !== "0") //该data的metadata存在
+        {
+          this.refs.show_patientID_from.value = result[0].toString(),
+          this.refs.show_timestamp_from.value = result[1].toString(),
+          this.refs.show_allowedRole_from.value = result[2].toNumber()
+        }
+        else  //该data的metadata不存在
+        {
+           this.refs.show_patientID_from.value = "no metadata found";
+           this.refs.show_timestamp_from.value = "no metadata found";
+           this.refs.show_allowedRole_from.value = "no metadata found"
+        }
         // this.setState({
         //     owner: result[0].toString()
         // })
@@ -168,38 +173,10 @@ class Dashboard extends Component {
         // })
       })
 
-      this.refs.patientID_from.value = ""; //清空输入框，方便下一次查询
+      this.refs.q_patientID_from.value = ""; //清空输入框，方便下一次查询
       //console.log('EMRMetasCount:', this.state.owner);
 
       /*==========try to connect to PostgreSQL in front-end js====================*/
-      // const { Pool, Client } = require('pg')
-      //
-      // const pool = new Pool({
-      //   user: 'root',
-      //   host: '192.168.56.101',
-      //   database: 'ride_mediator_db',
-      //   password: 'dang5678',
-      //   port: 5432,
-      // })
-      //
-      // pool.query('SELECT * from area', (err, res) => {
-      //   console.log(err, res)
-      //   pool.end()
-      // })
-      //
-      // const client = new Client({
-      //     user: 'root',
-      //     host: '192.168.56.101',
-      //     database: 'ride_mediator_db',
-      //     password: 'dang5678',
-      //     port: 5432,
-      // })
-      // client.connect()
-      //
-      // client.query('SELECT * from area', (err, res) => {
-      //   console.log(err, res)
-      //   client.end()
-      // })
   }
 
   /**
@@ -214,13 +191,13 @@ class Dashboard extends Component {
 
     this.state.queryMetaInstance.addMetas(patientID,timeStamp,allowedRole)
 
-    alert('Added a new medical metadata successfully!')
+    //alert('Added a new medical metadata successfully!')
+    //分布式确认不能简单给提示
 
     //清空输入框，方便下一次增加
     this.refs.a_patientID_from.value = "";
     this.refs.timestamp_from.value = "";
     this.refs.allowedRole_from.value = "";
-
   }
 
   /**
@@ -236,7 +213,8 @@ class Dashboard extends Component {
 
     this.state.queryMetaInstance.updateMetas(patientID,timeStamp,allowedRole)
 
-    alert('Updated a new medical metadata successfully!')
+    //alert('Updated a new medical metadata successfully!')
+    //分布式确认不能简单给提示
 
     //清空输入框
     this.refs.show_patientID_from.value = "";
@@ -269,7 +247,7 @@ class Dashboard extends Component {
 
                 <h1> EMRMetas Records </h1>
 
-                <p> These records are synchronized all network.(To show this is a DApp(Decentralized APPlication)) </p>
+                <p> These records are synchronized all network. (To show this is a DApp (Decentralized APPlication)) </p>
 
                 <hr />
             </div>

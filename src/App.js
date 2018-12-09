@@ -52,7 +52,7 @@ class App extends Component {
           <Link to="/" className="pure-menu-heading pure-menu-link">Home</Link>
         </nav>
 
-        {this.props.children}  {/*此处的children为各个子component，由router分配*/}
+        {this.props.children}{/*此处的children为各个子component，由router分配*/}
 
       </div>
     );

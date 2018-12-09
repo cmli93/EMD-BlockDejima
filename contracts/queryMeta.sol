@@ -98,7 +98,7 @@ contract queryMeta {
          if(EMRMetas[i].owner == _id)
                 return (EMRMetas[i].owner, EMRMetas[i].timestamp, EMRMetas[i].allowedRole);
       }
-      return (0,"0",0);
+      return (0,"0",0); //return id=0 if no result Meta found
     }
 
 
